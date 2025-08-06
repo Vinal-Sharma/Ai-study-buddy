@@ -96,6 +96,7 @@ def chat_page():
             st.markdown(message["content"])
 
     # Chat input logic
+   # Chat input logic
     if prompt := st.chat_input("Ask a question..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
@@ -104,14 +105,14 @@ def chat_page():
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 response = ""
-                # Logic for different chat modes
+                # Logic to handle different chat modes
                 if chat_mode == "Web Search":
                     search_results = get_web_search_results(query=prompt)
-                    # We pass the search results to the LLM for a conversational answer
                     final_prompt = f"Based on the following web search results, please provide an answer to the user's question.\n\nSearch Results:\n---\n{search_results}\n---\n\nQuestion: {prompt}"
                     response = get_chat_response(chat_model, [{"role": "user", "content": final_prompt}], system_prompt)
 
                 elif chat_mode == "Document Chat":
+                    # If a document is uploaded and processed
                     if "vector_store" in st.session_state and st.session_state.vector_store:
                         retriever = st.session_state.vector_store.as_retriever(search_kwargs={"k": 3})
                         docs = retriever.get_relevant_documents(prompt)
@@ -122,8 +123,11 @@ def chat_page():
                         model_messages = list(st.session_state.messages)
                         model_messages[-1] = {"role": "user", "content": flexible_prompt}
                         response = get_chat_response(chat_model, model_messages, system_prompt)
+                    
+                    # --- THIS IS THE FIX ---
+                    # If no document is uploaded yet, have a normal conversation
                     else:
-                        response = "Please upload a document to use the Document Chat mode."
+                        response = get_chat_response(chat_model, st.session_state.messages, system_prompt)
 
                 st.markdown(response)
         
