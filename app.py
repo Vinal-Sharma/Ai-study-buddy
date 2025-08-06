@@ -79,7 +79,8 @@ def chat_page():
                         st.sidebar.error("Could not extract text from the PDF.")
 
     # --- NEW: DYNAMIC SYSTEM PROMPT LOGIC ---
-    base_prompt = "You are a friendly and encouraging AI Study Buddy. Your goal is to help users understand topics. Always be positive, patient, and helpful."
+   # (This is inside the chat_page function)
+base_prompt = "You are a friendly and conversational AI assistant named Study Buddy. Chat with the user in a natural, helpful, and encouraging way. If the user says something conversational like 'hello' or 'thanks', respond naturally. Keep your tone positive and use emojis where appropriate."
     if response_mode == "Concise":
         system_prompt = base_prompt + " Your responses must be short, summarized, and to the point, in 1-2 sentences."
     else: # Detailed
