@@ -1,20 +1,17 @@
 # models/llm.py
-# models/llm.py
-
-import os
-import sys
+import streamlit as st
 from langchain_groq import ChatGroq
 
-# This line is the most important part - it imports your key and model
-from config.config import GROQ_API_KEY, GROQ_MODEL_NAME
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-
+# Try to get secrets from Streamlit, otherwise use local config
+try:
+    GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
+    GROQ_MODEL_NAME = st.secrets["GROQ_MODEL_NAME"]
+except (KeyError, FileNotFoundError):
+    from config.config import GROQ_API_KEY, GROQ_MODEL_NAME
 
 def get_chatgroq_model():
     """Initialize and return the Groq chat model"""
     try:
-        # This now uses your key and model from the config file
         groq_model = ChatGroq(
             api_key=GROQ_API_KEY,
             model=GROQ_MODEL_NAME,
