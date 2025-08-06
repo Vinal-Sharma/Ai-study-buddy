@@ -1,0 +1,10 @@
+# .gitignore
+
+# Ignore the config file with API keys
+config/config.py
+
+# Ignore Python cache files
+__pycache__/
+config/__pycache__/
+models/__pycache__/
+utils/__pycache__/
