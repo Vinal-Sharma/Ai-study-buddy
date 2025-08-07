@@ -46,27 +46,25 @@ def chat_page():
     """Main chat interface page"""
     st.title("🤖 AI Study Buddy")
 
+    # --- DEFINE THE SYSTEM PROMPT ---
+    base_prompt = "You are a friendly and conversational AI assistant named Study Buddy. Chat with the user in a natural, helpful, and encouraging way. If the user says something conversational like 'hello' or 'thanks', respond naturally. Keep your tone positive and use emojis where appropriate."
+
     # Sidebar for configuration
     with st.sidebar:
         st.header("Configuration")
-
         chat_mode = st.radio(
             "Select Chat Mode:",
             ("Document Chat", "Web Search")
         )
-
-        # --- NEW: RESPONSE MODE SELECTOR ---
         response_mode = st.radio(
             "Select Response Mode:",
             ("Concise", "Detailed"),
             index=1 # Default to Detailed
         )
         st.divider()
-
         if chat_mode == "Document Chat":
             st.header("Upload Your Document")
             pdf_file = st.file_uploader("Upload your PDF study material", type="pdf")
-
             if pdf_file and "vector_store" not in st.session_state:
                 with st.spinner("Processing PDF..."):
                     raw_text = get_pdf_text(pdf_file)
@@ -78,9 +76,7 @@ def chat_page():
                     else:
                         st.sidebar.error("Could not extract text from the PDF.")
 
-    # --- NEW: DYNAMIC SYSTEM PROMPT LOGIC ---
-   # (This is inside the chat_page function)
-base_prompt = "You are a friendly and conversational AI assistant named Study Buddy. Chat with the user in a natural, helpful, and encouraging way. If the user says something conversational like 'hello' or 'thanks', respond naturally. Keep your tone positive and use emojis where appropriate."
+    # --- DYNAMIC SYSTEM PROMPT LOGIC (CORRECT INDENTATION) ---
     if response_mode == "Concise":
         system_prompt = base_prompt + " Your responses must be short, summarized, and to the point, in 1-2 sentences."
     else: # Detailed
@@ -97,43 +93,30 @@ base_prompt = "You are a friendly and conversational AI assistant named Study Bu
             st.markdown(message["content"])
 
     # Chat input logic
-   # Chat input logic
     if prompt := st.chat_input("Ask a question..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
-
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 response = ""
-                # Logic to handle different chat modes
                 if chat_mode == "Web Search":
                     search_results = get_web_search_results(query=prompt)
                     final_prompt = f"Based on the following web search results, please provide an answer to the user's question.\n\nSearch Results:\n---\n{search_results}\n---\n\nQuestion: {prompt}"
                     response = get_chat_response(chat_model, [{"role": "user", "content": final_prompt}], system_prompt)
-
                 elif chat_mode == "Document Chat":
-                    # If a document is uploaded and processed
                     if "vector_store" in st.session_state and st.session_state.vector_store:
                         retriever = st.session_state.vector_store.as_retriever(search_kwargs={"k": 3})
                         docs = retriever.get_relevant_documents(prompt)
                         context = "\n".join([doc.page_content for doc in docs])
-                        
                         flexible_prompt = f"Use the following document excerpts to answer the user's question. If the question is conversational or seems unrelated to the excerpts, answer it from your own knowledge. \n\nContext Excerpts:\n---\n{context}\n---\n\nUser's Question: {prompt}"
-                        
                         model_messages = list(st.session_state.messages)
                         model_messages[-1] = {"role": "user", "content": flexible_prompt}
                         response = get_chat_response(chat_model, model_messages, system_prompt)
-                    
-                    # --- THIS IS THE FIX ---
-                    # If no document is uploaded yet, have a normal conversation
                     else:
                         response = get_chat_response(chat_model, st.session_state.messages, system_prompt)
-
                 st.markdown(response)
-        
         st.session_state.messages.append({"role": "assistant", "content": response})
-        
         
 
 
